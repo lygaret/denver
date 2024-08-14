@@ -127,12 +127,12 @@ module DenverBS
 
               when "\\"
                 escape     = input.consume
-                strbuffer += breakpoint + escape
+                escape     = "\"#{breakpoint}#{escape}\"".undump
+                strbuffer += escape
 
                 # todo: give escapes lexical meaning
                 # todo: multichar escapes (\u74FF, etc)
                 next
-
               end
             end
 
