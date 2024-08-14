@@ -41,7 +41,18 @@ module DenverBS
     end
 
     # @return true when the input is at the end of the stream
-    def eof? = @input.eof?
+    def eof? = @buffer.empty? && @input.eof?
+
+    # @return the current position in the input buffer
+    # @note this can return negative positions, if the ungets buffer is larger than the read amount
+    def pos  = @input.pos - @buffer.length
+
+    # reset the lexer to the beginning
+    # @raises if the inputs stream can't be rewound
+    def rewind
+      @input.rewind
+      @buffer = []
+    end
 
     # get a character from the input buffer
     # yields to a block if given, but always returns the read char
