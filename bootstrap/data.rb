@@ -9,6 +9,8 @@ module DenverBS
           "()"
         when :cons
           value.to_s
+        when :symbol, :number
+          value.to_s
         else
           "#{tag.to_s}|#{value.inspect}"
         end

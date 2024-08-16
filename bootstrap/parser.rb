@@ -9,7 +9,9 @@ module DenverBS
       @tokens = tokens.is_a?(Tokenizer) ? tokens : Tokenizer.new(tokens)
     end
 
-    def each
+    def each(&)
+      return each.each(&) if block_given?
+
       Enumerator.new do |yielder|
         # ignore comments and whitespace
         tokens = @tokens.each.lazy.reject do |token|

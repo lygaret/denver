@@ -1,3 +1,5 @@
+require 'stringio'
+
 module DenverBS
 
   # A lexing buffer.

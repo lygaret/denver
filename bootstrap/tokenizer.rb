@@ -75,7 +75,9 @@ module DenverBS
     # @param line [number] the line number we're starting from
     # @param point [number] the line offset we're starting from
     # @return an enumerator of tokens from the input
-    def each(line: 0, point: 0)
+    def each(line: 0, point: 0, &)
+      return each(line:, point:).each(&) if block_given?
+
       Enumerator.new do |yielder|
         buffer = []
         cursor = Cursor.new(line, point)
