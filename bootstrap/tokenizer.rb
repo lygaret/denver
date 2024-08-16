@@ -43,11 +43,11 @@ module DenverBS
     # @param pos [Number] the position in the input slice of this token
     # @param line [Number] the line number of the token
     # @param point [Number] the point offset on the given line for the token
-    Token = Data.define(:tag, :value, :slice, :pos, :line, :point)
+    Token = ::Data.define(:tag, :value, :slice, :pos, :line, :point)
 
     # @private
     # simple cursor to track line numbers and points
-    Cursor = Struct.new(:line, :point) do
+    Cursor = ::Struct.new(:line, :point) do
       def clone = Cursor.new(*deconstruct)
 
       def newline!
