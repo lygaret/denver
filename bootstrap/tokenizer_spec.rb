@@ -1,5 +1,5 @@
-require_relative './lexer.rb'
-require_relative './tokenizer.rb'
+require_relative 'lexer'
+require_relative 'tokenizer'
 
 # custome matcher for token streams
 # @example
@@ -28,7 +28,11 @@ RSpec::Matchers.define :tokenize_as do |*expected|
   # hash with :tag, :value keys
   match_unless_raises do |actual|
     expected.each do |tag|
-      token = actual.next rescue (raise "expected: #{tag}, but hit end of stream")
+      token = begin
+        actual.next
+      rescue StandardError
+        raise "expected: #{tag}, but hit end of stream"
+      end
 
       case tag
       when Symbol
@@ -45,46 +49,49 @@ RSpec::Matchers.define :tokenize_as do |*expected|
 end
 
 RSpec.describe DenverBS::Tokenizer do
-  describe "#initialize" do
+  describe '#initialize' do
     subject(:tokenizer) { described_class.new(input) }
 
-    context "with a lexer" do
+    context 'with a lexer' do
       let(:input) { DenverBS::Lexer.new('hi') }
 
-      it "should just use the input lexer" do
+      it 'justs use the input lexer' do
         expect(subject.input).to be(input)
       end
     end
 
-    context "with a string" do
-      let(:input) { "hi" }
+    context 'with a string' do
+      let(:input) { 'hi' }
 
-      it "should create a lexer" do
+      it 'creates a lexer' do
         expect(subject.input).to be_a(DenverBS::Lexer)
       end
     end
   end
 
-  describe "tokenization" do
+  describe 'tokenization' do
     subject(:tokens) { described_class.new(input).each }
 
-    describe "simple string parsing" do
+    describe 'simple string parsing' do
       let(:input) { '"hello"' }
-      it "should return a single string" do
-        expect(tokens).to tokenize_as({ tag: :string, value: "hello" })
+
+      it 'returns a single string' do
+        expect(tokens).to tokenize_as({ tag: :string, value: 'hello' })
       end
     end
 
-    describe "complicated string parsing" do
+    describe 'complicated string parsing' do
       let(:input) { "\"hello\n\t\\\"and more\"" }
-      it "should return a single string" do
+
+      it 'returns a single string' do
         expect(tokens).to tokenize_as({ tag: :string, value: "hello\n\t\"and more" })
       end
     end
 
-    describe "binary numbers" do
-      let(:input) { "#b0000 #b1111 #b11110000 #b2" }
-      it "should return some numbers" do
+    describe 'binary numbers' do
+      let(:input) { '#b0000 #b1111 #b11110000 #b2' }
+
+      it 'returns some numbers' do
         expect(tokens).to(
           tokenize_as(
             { tag: :number, value: 0 },
@@ -93,15 +100,16 @@ RSpec.describe DenverBS::Tokenizer do
             { tag: :ws },
             { tag: :number, value: 240 },
             { tag: :ws },
-            { tag: :invalid }, # invalid not a symbol
+            { tag: :invalid } # invalid not a symbol
           )
         )
       end
     end
 
-    describe "hex numbers" do
-      let(:input) { "#x15 #xDD #x0 #xq" }
-      it "should return some numbers" do
+    describe 'hex numbers' do
+      let(:input) { '#x15 #xDD #x0 #xq' }
+
+      it 'returns some numbers' do
         expect(tokens).to(
           tokenize_as(
             { tag: :number, value: 0x15 },
@@ -110,15 +118,16 @@ RSpec.describe DenverBS::Tokenizer do
             { tag: :ws },
             { tag: :number, value: 0x00 },
             { tag: :ws },
-            { tag: :invalid }, # invalid not a symbol
+            { tag: :invalid } # invalid not a symbol
           )
         )
       end
     end
 
-    describe "decimal numbers" do
-      let(:input) { "#u0 #u15 #u240 #ua" }
-      it "should return some numbers" do
+    describe 'decimal numbers' do
+      let(:input) { '#u0 #u15 #u240 #ua' }
+
+      it 'returns some numbers' do
         expect(tokens).to(
           tokenize_as(
             { tag: :number, value: 0 },
@@ -127,15 +136,16 @@ RSpec.describe DenverBS::Tokenizer do
             { tag: :ws },
             { tag: :number, value: 240 },
             { tag: :ws },
-            { tag: :invalid }, # invalid not a symbol
+            { tag: :invalid } # invalid not a symbol
           )
         )
       end
     end
 
-    describe "float numbers" do
-      let(:input) { "0.0 15 2.40e2 2. 3.0e-6" }
-      it "should return some numbers" do
+    describe 'float numbers' do
+      let(:input) { '0.0 15 2.40e2 2. 3.0e-6' }
+
+      it 'returns some numbers' do
         expect(tokens).to(
           tokenize_as(
             { tag: :number, value: 0 },
@@ -146,38 +156,37 @@ RSpec.describe DenverBS::Tokenizer do
             { tag: :ws },
             { tag: :invalid }, # digit after decimal
             { tag: :ws },
-            { tag: :number, value: 3e-6 },
+            { tag: :number, value: 3e-6 }
           )
         )
       end
     end
 
-    context "example one" do
+    context 'example one' do
       let(:input) { <<~CODE }
         (one #b0 two #u1 three #x2)
       CODE
 
-      it "should extract known tokens" do
+      it 'extracts known tokens' do
         expect(tokens).to(
           tokenize_as(
             { tag: :paren_o },
-            { tag: :ident, value: "one" },
+            { tag: :ident, value: 'one' },
             { tag: :ws },
             { tag: :number, value: 0 },
             { tag: :ws },
-            { tag: :ident, value: "two" },
+            { tag: :ident, value: 'two' },
             { tag: :ws },
             { tag: :number, value: 1 },
             { tag: :ws },
-            { tag: :ident, value: "three" },
+            { tag: :ident, value: 'three' },
             { tag: :ws },
             { tag: :number, value: 2 },
             { tag: :paren_c },
-            { tag: :eol },
+            { tag: :eol }
           )
         )
       end
     end
-
   end
 end
