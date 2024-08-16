@@ -83,7 +83,7 @@ RSpec.describe DenverBS::Tokenizer do
     end
 
     describe "binary numbers" do
-      let(:input) { "#b0000 #b1111 #b11110000" }
+      let(:input) { "#b0000 #b1111 #b11110000 #b2" }
       it "should return some numbers" do
         expect(tokens).to(
           tokenize_as(
@@ -92,6 +92,61 @@ RSpec.describe DenverBS::Tokenizer do
             { tag: :number, value: 15 },
             { tag: :ws },
             { tag: :number, value: 240 },
+            { tag: :ws },
+            { tag: :invalid }, # invalid not a symbol
+          )
+        )
+      end
+    end
+
+    describe "hex numbers" do
+      let(:input) { "#x15 #xDD #x0 #xq" }
+      it "should return some numbers" do
+        expect(tokens).to(
+          tokenize_as(
+            { tag: :number, value: 0x15 },
+            { tag: :ws },
+            { tag: :number, value: 0xDD },
+            { tag: :ws },
+            { tag: :number, value: 0x00 },
+            { tag: :ws },
+            { tag: :invalid }, # invalid not a symbol
+          )
+        )
+      end
+    end
+
+    describe "decimal numbers" do
+      let(:input) { "#u0 #u15 #u240 #ua" }
+      it "should return some numbers" do
+        expect(tokens).to(
+          tokenize_as(
+            { tag: :number, value: 0 },
+            { tag: :ws },
+            { tag: :number, value: 15 },
+            { tag: :ws },
+            { tag: :number, value: 240 },
+            { tag: :ws },
+            { tag: :invalid }, # invalid not a symbol
+          )
+        )
+      end
+    end
+
+    describe "float numbers" do
+      let(:input) { "0.0 15 2.40e2 2. 3.0e-6" }
+      it "should return some numbers" do
+        expect(tokens).to(
+          tokenize_as(
+            { tag: :number, value: 0 },
+            { tag: :ws },
+            { tag: :number, value: 15 },
+            { tag: :ws },
+            { tag: :number, value: 240 },
+            { tag: :ws },
+            { tag: :invalid }, # digit after decimal
+            { tag: :ws },
+            { tag: :number, value: 3e-6 },
           )
         )
       end

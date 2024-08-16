@@ -195,6 +195,42 @@ module DenverBS
             next
           end
 
+          # numbers without a prefix are floats
+          # (+-) digit+ (\. digit+)? ([eE][+-] digit+)
+          if (current = input.consume { '+' == _1 or '-' == _1 or DIGITS_BASE10.match? _1 })
+            current = input.consume_while(prefix: current) { DIGITS_BASE10.match? _1 } || current
+
+            if (input.consume { '.' == _1 })
+              current += '.'
+
+              number = current
+              unless (current = input.consume_while(prefix: current) { DIGITS_BASE10.match? _1 })
+                yielder << Token.new(:invalid, "expected digit after decimal point!", number, offset, cursor.line, cursor.point)
+                cursor.right!(number.length)
+
+                next
+              end
+            end
+
+            if (expchar = input.consume { 'e' == _1 or 'E' == _1 })
+              current += expchar
+              current += input.consume { '+' == _1 or '-' == _1 } || ""
+
+              number = current
+              unless (current = input.consume_while(prefix: current) { DIGITS_BASE10.match? _1 })
+                yielder << Token.new(:invalid, "expected digit after exponent!", number, offset, cursor.line, cursor.point)
+                cursor.right!(number.length)
+
+                next
+              end
+            end
+
+            yielder << Token.new(:number, Float(current), current, offset, cursor.line, cursor.point)
+            cursor.right!(current.length)
+
+            next
+          end
+
           # identifiers
           if (current = input.consume_while { IDENT_START.match? _1 })
             suffix    = input.consume_while { IDENT_START.match? _1 or IDENT_CONT.match? _1 }

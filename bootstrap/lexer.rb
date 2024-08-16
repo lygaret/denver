@@ -126,6 +126,7 @@ module DenverBS
     # @return the string that was read, or nil if no matches were made
     def consume_while(prefix: nil, &pred)
       buffer = prefix&.dup || ""
+      length = buffer.length
 
       # fill up while we pass
       while (char = getc) and pred.call(char)
@@ -134,7 +135,9 @@ module DenverBS
 
       # the last char we read _didn't_ pass the check
       ungetc(char) unless char.nil?
-      buffer.length == 0 ? nil : buffer
+
+      # if the buffer length grew, return truthy
+      buffer.length > length ? buffer : nil
     end
 
     # consume from input, while the given predicate returns false
