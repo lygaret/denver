@@ -11,7 +11,7 @@ module DenverBS
     end
 
     def each(&)
-      return each(&) if block_given?
+      return each.each(&) if block_given?
 
       Enumerator.new do |yielder|
         @source.rewind
@@ -55,23 +55,23 @@ module DenverBS
         { tag: :quasiquote } |
         { tag: :unquote } |
         { tag: :unquote_splice }
-        quote = Data::Atom.new(:symbol, @token.tag.to_s, nil)
+        quote = Data.symbol(@token.tag.to_s, @token)
 
         next_token!
-        value = parse_expr(state: @token.tag.to_s)
+        value = parse_expr(state: @token&.tag&.to_s)
         Data.cons(quote, value, @token)
 
       in { tag: :sharp }
         parse_sharp(state:)
 
       in { tag: :ident, value: v }
-        Data::Atom.new(:symbol, v, @token)
+        Data::Atom.new(:symbol, v, nil, @token)
 
       in { tag: :number, value: v }
-        Data::Atom.new(:number, v, @token)
+        Data::Atom.new(:number, v, nil, @token)
 
       in { tag: :string, value: v }
-        Data::Atom.new(:string, v, @token)
+        Data::Atom.new(:string, v, nil, @token)
 
       end
     end
@@ -109,18 +109,10 @@ module DenverBS
       end
     end
 
-    # in { tag: :paren_o }
-    #   parse_cons(tokenizer.next, tokenizer, state:)
-
-    # else
-    #   "oh no invalid: #{token}"
-    # end
-    # end
-
     def parse_sharp(state: nil)
       case state
       when :quoted
-        quote = Data::Atom.new(:symbol, 'sharp', @token)
+        quote = Data.symbol('sharp', @token)
 
         next_token!
         value = parse_expr(state:)
@@ -134,7 +126,7 @@ module DenverBS
         in { tag: :ident, value: 'f' }
           Data.false(@token)
         else
-          quote = Data::Atom.new(:symbol, 'sharp', nil)
+          quote = Data.symbol('sharp', nil)
           value = parse_expr(state:)
           Data.cons(quote, value, @token)
         end
