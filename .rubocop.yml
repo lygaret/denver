@@ -14,3 +14,4 @@ require:
 
 AllCops:
   NewCops: enable
+  TargetRubyVersion: 3.3

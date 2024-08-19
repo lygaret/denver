@@ -1,7 +1,8 @@
-require_relative './lexer.rb'
+# frozen_string_literal: true
+
+require_relative 'lexer'
 
 module DenverBS
-
   # generates a stream of tokens out of an input stream
   #
   # @see Lexer
@@ -15,7 +16,6 @@ module DenverBS
   # tok.next #=> <Token tag:paren_c>
   # tok.next #=> StopIteration error
   class Tokenizer
-
     NEWLINE       = /^\n/
     WHITESPACE    = /[^\S\r\n]/ # this should match all ws that's _not_ a newline
 
@@ -24,16 +24,16 @@ module DenverBS
     DIGITS_BASE16 = /^[0-9a-fA-F]/
 
     IDENT_START   = /^\p{IDS}|[-!$%@&<=>?~_+\\*^]/
-    IDENT_CONT    = /^\p{IDC}|[\/:#]/
+    IDENT_CONT    = %r{^\p{IDC}|[/:#]}
 
     SYMBOL_TOKENS = {
-      '('  => :paren_o,
-      ')'  => :paren_c,
-      '`'  => :quasiquote,
+      '(' => :paren_o,
+      ')' => :paren_c,
+      '`' => :quasiquote,
       '\'' => :quote,
-      '#'  => :sharp,
-      '.'  => :dot
-    }
+      '#' => :sharp,
+      '.' => :dot
+    }.freeze
 
     # a single token produced by the Tokenizer
     #
@@ -106,7 +106,7 @@ module DenverBS
 
           # comments go to the end of the line
           if (current = input.consume { _1 == ';' })
-            current = input.consume_until(prefix: current) { NEWLINE.match? _1 } || ""
+            current = input.consume_until(prefix: current) { NEWLINE.match? _1 } || ''
             yielder << Token.new(:comment, nil, current, offset, cursor.line, cursor.point)
 
             cursor.right! current.length
@@ -115,31 +115,31 @@ module DenverBS
 
           # strings
           if (current = input.consume { _1 == '"' })
-            strbuffer  = ""
+            strbuffer  = ''
             breakpoint = nil
 
             loop do
-              strbuffer += input.consume_until { _1 == '"' or _1 == '\\' } || ""
+              strbuffer += input.consume_until { ['"', '\\'].include?(_1) } || ''
               breakpoint = input.consume
 
               case breakpoint
-              when nil, "\""
+              when nil, '"'
                 # eof or end of the string, we're done
                 break
 
-              when "\\"
+              when '\\'
                 escape     = input.consume
                 escape     = "\"#{breakpoint}#{escape}\"".undump
                 strbuffer += escape
 
-                # todo: give escapes lexical meaning
+                # TODO: give escapes lexical meaning
                 # todo: multichar escapes (\u74FF, etc)
                 next
               end
             end
 
             if breakpoint.nil? # eof?
-              yielder << Token.new(:invalid, "eof in string", "\"#{strbuffer}", offset, cursor.line, cursor.point)
+              yielder << Token.new(:invalid, 'eof in string', "\"#{strbuffer}", offset, cursor.line, cursor.point)
               cursor.right!(strbuffer.length + 1) # for open quote
             else
               yielder << Token.new(:string, strbuffer, "\"#{strbuffer}\"", offset, cursor.line, cursor.point)
@@ -150,7 +150,7 @@ module DenverBS
           end
 
           # #b reads binary digits
-          if (current = input.consume_string("#b"))
+          if (current = input.consume_string('#b'))
             if (digits = input.consume_while { DIGITS_BASE2.match? _1 })
               yielder << Token.new(:number, digits.to_i(2), current + digits, offset, cursor.line, cursor.point)
 
@@ -159,14 +159,14 @@ module DenverBS
               next
             end
 
-            yielder << Token.new(:invalid, "expected base2 digits", current, offset, cursor.line, cursor.point)
+            yielder << Token.new(:invalid, 'expected base2 digits', current, offset, cursor.line, cursor.point)
             cursor.right!(current.length)
 
             next
           end
 
           # #u reads decimal digits
-          if (current = input.consume_string("#u"))
+          if (current = input.consume_string('#u'))
             if (digits = input.consume_while { DIGITS_BASE10.match? _1 })
               yielder << Token.new(:number, digits.to_i(10), current + digits, offset, cursor.line, cursor.point)
 
@@ -175,14 +175,14 @@ module DenverBS
               next
             end
 
-            yielder << Token.new(:invalid, "expected base10 digits", current, offset, cursor.line, cursor.point)
+            yielder << Token.new(:invalid, 'expected base10 digits', current, offset, cursor.line, cursor.point)
             cursor.right!(current.length)
 
             next
           end
 
           # #x reads hexidecimal digits
-          if (current = input.consume_string("#x"))
+          if (current = input.consume_string('#x'))
             if (digits = input.consume_while { DIGITS_BASE16.match? _1 })
               yielder << Token.new(:number, digits.to_i(16), current + digits, offset, cursor.line, cursor.point)
 
@@ -191,7 +191,7 @@ module DenverBS
               next
             end
 
-            yielder << Token.new(:invalid, "expected base16 digits", current, offset, cursor.line, cursor.point)
+            yielder << Token.new(:invalid, 'expected base16 digits', current, offset, cursor.line, cursor.point)
             cursor.right!(current.length)
 
             next
@@ -199,28 +199,30 @@ module DenverBS
 
           # numbers without a prefix are floats
           # (+-) digit+ (\. digit+)? ([eE][+-] digit+)
-          if (current = input.consume { '+' == _1 or '-' == _1 or DIGITS_BASE10.match? _1 })
+          if (current = input.consume { (_1 == '+') || (_1 == '-') || DIGITS_BASE10.match?(_1) })
             current = input.consume_while(prefix: current) { DIGITS_BASE10.match? _1 } || current
 
-            if (input.consume { '.' == _1 })
+            if input.consume { _1 == '.' }
               current += '.'
 
               number = current
               unless (current = input.consume_while(prefix: current) { DIGITS_BASE10.match? _1 })
-                yielder << Token.new(:invalid, "expected digit after decimal point!", number, offset, cursor.line, cursor.point)
+                yielder << Token.new(:invalid, 'expected digit after decimal point!', number, offset, cursor.line,
+                                     cursor.point)
                 cursor.right!(number.length)
 
                 next
               end
             end
 
-            if (expchar = input.consume { 'e' == _1 or 'E' == _1 })
+            if (expchar = input.consume { %w[e E].include?(_1) })
               current += expchar
-              current += input.consume { '+' == _1 or '-' == _1 } || ""
+              current += input.consume { ['+', '-'].include?(_1) } || ''
 
               number = current
               unless (current = input.consume_while(prefix: current) { DIGITS_BASE10.match? _1 })
-                yielder << Token.new(:invalid, "expected digit after exponent!", number, offset, cursor.line, cursor.point)
+                yielder << Token.new(:invalid, 'expected digit after exponent!', number, offset, cursor.line,
+                                     cursor.point)
                 cursor.right!(number.length)
 
                 next
@@ -236,7 +238,7 @@ module DenverBS
           # identifiers
           if (current = input.consume_while { IDENT_START.match? _1 })
             suffix    = input.consume_while { IDENT_START.match? _1 or IDENT_CONT.match? _1 }
-            ident     = current + (suffix || "")
+            ident     = current + (suffix || '')
 
             yielder << Token.new(:ident, ident, ident, offset, cursor.line, cursor.point)
             cursor.right! ident.length
@@ -245,15 +247,15 @@ module DenverBS
           end
 
           # char by char tokenize
-          if (input.consume { "," == _1 })
-            if (input.consume { "@" == _1 })
-              yielder << Token.new(:comma_splice, nil, ",@", offset, cursor.line, cursor.point)
+          if input.consume { _1 == ',' }
+            if input.consume { _1 == '@' }
+              yielder << Token.new(:unquote_splice, nil, ',@', offset, cursor.line, cursor.point)
               cursor.right! 2
 
               next
             end
 
-            yielder << Token.new(:comma, nil, ",", offset, cursor.line, cursor.point)
+            yielder << Token.new(:unquote, nil, ',', offset, cursor.line, cursor.point)
             cursor.right! 1
 
             next
@@ -274,6 +276,5 @@ module DenverBS
         end
       end
     end
-
   end
 end

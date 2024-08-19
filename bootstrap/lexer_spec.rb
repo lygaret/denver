@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'lexer'
 
 RSpec.describe DenverBS::Lexer do
@@ -116,7 +118,7 @@ RSpec.describe DenverBS::Lexer do
     it 'consumes while a pred returns false' do
       count  = 3
       retval = subject.consume_until do |_|
-        (count -= 1) < 0
+        (count -= 1).negative?
       end
 
       aggregate_failures do

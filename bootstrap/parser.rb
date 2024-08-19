@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'data'
 require_relative 'lexer'
 require_relative 'tokenizer'
@@ -9,7 +11,7 @@ module DenverBS
     end
 
     def each(&)
-      return each.each(&) if block_given?
+      return each(&) if block_given?
 
       Enumerator.new do |yielder|
         @source.rewind

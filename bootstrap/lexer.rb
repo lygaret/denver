@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require 'stringio'
 
 module DenverBS
-
   # A lexing buffer.
   #
   # Basically just a wrapper around an input stream, with helpful methods
@@ -19,7 +20,6 @@ module DenverBS
   # expect(lex).to be_eof
   #
   class Lexer
-
     # @return [IO]
     attr_reader :input
 
@@ -27,7 +27,7 @@ module DenverBS
     def initialize(input)
       @buffer = []
       @input  =
-        if ([:getc, :eof?].all? { input.respond_to? _1 })
+        if %i[getc eof?].all? { input.respond_to? _1 }
           # io like
           input
 
@@ -61,7 +61,7 @@ module DenverBS
     def getc(&body)
       char = @buffer.empty? ? @input.getc : @buffer.pop
       char.tap do |c|
-        body.call(c) unless c.nil? or body.nil?
+        body.call(c) unless c.nil? || body.nil?
       end
     end
 
@@ -69,7 +69,7 @@ module DenverBS
     # @return nil
     def ungetc(c)
       @buffer.push(c)
-      return nil
+      nil
     end
 
     # push the given string back on the input buffer
@@ -85,7 +85,7 @@ module DenverBS
         raise ArgumentError, "ungets expects string or char array, got #{str.inspect}"
       end
 
-      return nil
+      nil
     end
 
     # consume a single character from the input
@@ -127,11 +127,11 @@ module DenverBS
     # @input prefix [String] a prefix to add to the returned string
     # @return the string that was read, or nil if no matches were made
     def consume_while(prefix: nil, &pred)
-      buffer = prefix&.dup || ""
+      buffer = prefix&.dup || ''
       length = buffer.length
 
       # fill up while we pass
-      while (char = getc) and pred.call(char)
+      while (char = getc) && pred.call(char)
         buffer += char
       end
 
@@ -146,8 +146,7 @@ module DenverBS
     # @input prefix [String] a prefix to add to the returned string
     # @return the string that was conumed
     def consume_until(prefix: nil, &pred)
-      consume_while(prefix:) { |c| not pred.call(c) }
+      consume_while(prefix:) { |c| !pred.call(c) }
     end
   end
-
 end

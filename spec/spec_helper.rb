@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'debug'
 
 RSpec.configure do |config|

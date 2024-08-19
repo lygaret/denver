@@ -1,18 +1,19 @@
+# frozen_string_literal: true
+
 module DenverBS
   module Data
-
     # any kind of value in the s-expression tree
     Atom = ::Data.define(:tag, :value, :token) do
       def to_s
         case tag
         when :null
-          "()"
+          '()'
         when :cons
           value.to_s
         when :symbol, :number
           value.to_s
         else
-          "#{tag.to_s}|#{value.inspect}"
+          "#{tag}|#{value.inspect}"
         end
       end
     end
@@ -22,13 +23,13 @@ module DenverBS
       def to_s(cont: false)
         case cdr
         in { tag: :null }
-          "#{cont ? "" : "("}#{car})"
+          "#{cont ? '' : '('}#{car})"
 
         in { tag: :cons, value: cons }
-          "#{cont ? "" : "("}#{car} #{cons.to_s(cont: true)}"
+          "#{cont ? '' : '('}#{car} #{cons.to_s(cont: true)}"
 
         else
-          "#{cont ? "" : "("}#{car} . #{cdr})"
+          "#{cont ? '' : '('}#{car} . #{cdr})"
         end
       end
     end
