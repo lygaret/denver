@@ -17,7 +17,7 @@ module DenverBS
   class Tokenizer
 
     NEWLINE       = /^\n/
-    WHITESPACE    = /^\p{Zs}/
+    WHITESPACE    = /[^\S\r\n]/ # this should match all ws that's _not_ a newline
 
     DIGITS_BASE2  = /^[0-1]/
     DIGITS_BASE10 = /^[0-9]/

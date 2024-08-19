@@ -38,7 +38,8 @@ module DenverBS
       def true(token)  = Atom.new(:true, true, token)
       def false(token) = Atom.new(:false, false, token)
       def null(token)  = Atom.new(:null, nil, token)
-    end
 
+      def error(message, token) = Atom.new(:error, message, token)
+    end
   end
 end
