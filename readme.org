@@ -1,0 +1,13 @@
+* denver
+
+scheme like
+
+** run
+
+- ~bundle install~
+- ~bundle exec ruby ./repl.rb~
+
+#+begin_src scheme
+  >> (((lambda (a) (lambda (b) (list a b))) 1) 2)
+  #> (1.0 2.0)
+#+end_src
