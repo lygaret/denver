@@ -3,10 +3,17 @@
 require 'debug'
 require 'linenoise'
 
+require_relative 'bootstrap/data'
 require_relative 'bootstrap/parser'
+require_relative 'bootstrap/evaluator'
 
-while (input = Linenoise.linenoise('> '))
-  DenverBS::Parser.new(input).each do |atom|
-    puts "> #{atom}"
+machine = DenverBS::Evaluator.new
+
+while (input = Linenoise.linenoise('>> '))
+  parser = DenverBS::Parser.new(input)
+  parser.each do
+    value = machine.evaluate(_1, machine.global)
+
+    puts "#> #{value}"
   end
 end
