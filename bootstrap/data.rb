@@ -17,17 +17,35 @@ module DenverBS
       def car   = value
       def cdr   = extra
 
+      def caar   = car.car
       def cadr   = car.cdr
-      def caddr  = car.cdr.cdr
-      def cadddr = car.cdr.cdr.cdr
-
       def cdar   = cdr.car
       def cddr   = cdr.cdr
 
+      def caaar  = car.car.car
+      def caadr  = car.car.cdr
+      def cadar  = car.cdr.car
+      def caddr  = car.cdr.cdr
+      def cdaar  = cdr.car.car
+      def cdadr  = cdr.car.cdr
       def cddar  = cdr.cdr.car
+      def cdddr  = cdr.cdr.cdr
+
+      def cadddr = car.cdr.cdr.cdr
       def cdddar = cdr.cdr.cdr.car
 
       def count = pair? ? (1 + cdr.count) : 0
+
+      # walk down the cons list
+      def each
+        return to_enum(:each) unless block_given?
+
+        cursor = self
+        while cursor.pair?
+          yield cursor.car
+          cursor = cursor.cdr
+        end
+      end
 
       def deconstruct_keys(_)
         { tag:, value:, extra:, car: value, cdr: extra }
@@ -38,15 +56,12 @@ module DenverBS
         case tag
 
           # atoms
-        when :symbol, :number
+        when :symbol, :number, :string
           value.to_s
         when :true, :false
           "##{value ? 't' : 'f'}"
-        when :string
-          value.inspect
 
           # cons
-
         when :cons
           case cdr
           in { tag: :null }
@@ -68,6 +83,7 @@ module DenverBS
     end
 
     class << self
+      def bool(truthy, token)  = Atom.new(truthy ? :true : false, truthy, nil, token)
       def true(token)  = Atom.new(:true, true, nil, token)
       def false(token) = Atom.new(:false, false, nil, token)
       def cons(car, cdr, token) = Atom.new(:cons, car, cdr, token)

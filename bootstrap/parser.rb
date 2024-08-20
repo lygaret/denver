@@ -14,13 +14,17 @@ module DenverBS
       return each.each(&) if block_given?
 
       Enumerator.new do |yielder|
-        @source.rewind
-        @tokens = @source.each
-        @token  = @tokens.next
+        begin
+          @source.rewind
+          @tokens = @source.each
+          @token  = @tokens.next
 
-        while skip_over_wsc!
-          yielder << parse_expr(state: :top)
-          next_token!
+          while skip_over_wsc!
+            yielder << parse_expr(state: :top)
+            next_token!
+          end
+        rescue StopIteration
+          # nop
         end
       end
     end

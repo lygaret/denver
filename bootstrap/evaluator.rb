@@ -25,8 +25,17 @@ module DenverBS
       @memory = []
     end
 
+    def set_global(name, value)
+      @global[name] = value
+    end
+
+    def define_global(name, &block)
+      @global[name] = DenverBS::Data.function(nil, &block)
+    end
+
     def lookup(expr, env)
-      env[expr.value] or DenverBS::Data.error("no such binding: #{key}", nil)
+      key = expr.value
+      env[key] or DenverBS::Data.error("no such binding: #{key}", nil)
     end
 
     def update(expr, env, value)
@@ -93,9 +102,6 @@ module DenverBS
           else
             evaluate(expr.cdddar, env)
           end
-
-        in { tag: :symbol, value: 'list' }
-          elist(expr.cdr, env)
 
         in { tag: :symbol, value: 'begin' }
           eprogn(expr.cdr, env)

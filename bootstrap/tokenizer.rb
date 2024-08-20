@@ -198,10 +198,8 @@ module DenverBS
           end
 
           # numbers without a prefix are floats
-          # (+-) digit+ (\. digit+)? ([eE][+-] digit+)
-          if (current = input.consume { (_1 == '+') || (_1 == '-') || DIGITS_BASE10.match?(_1) })
-            current = input.consume_while(prefix: current) { DIGITS_BASE10.match? _1 } || current
-
+          # digit+ (\. digit+)? ([eE][+-] digit+)
+          if (current = input.consume_while { DIGITS_BASE10.match?(_1) })
             if input.consume { _1 == '.' }
               current += '.'
 

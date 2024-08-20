@@ -13,9 +13,14 @@ scheme like
 - ~bundle exec ruby ./repl.rb~
 
 #+begin_src scheme
+  >> (cdddr (list 1 2 3 4 5))
+  #> (4.0 5.0)
+  >> (cons 4 5)
+  #> (4.0 . 5.0)
+
   >> (((lambda (a) (lambda (b) (list a b))) 1) 2)
   #> (1.0 2.0)
-  >>
+
   >> ; we don't have a global env yet
   >> (set! double (lambda (x) (list x x)))
   #> function|#<Proc:0x00007f621dc76768 /home/jonathan/code/denver/bootstrap/evaluator.rb:60>
@@ -25,4 +30,10 @@ scheme like
   >>
   >> (double (double 4))
   #> ((4.0 4.0) (4.0 4.0))
+
+  >> (set! pairup (lambda (v) (cons v v)))
+  #> function|#<Proc:0x00007f7bc2f4a390 /home/jonathan/code/denver/bootstrap/evaluator.rb:69>
+  >>
+  >> (pairup 3)
+  #> (3.0 . 3.0)
 #+end_src
