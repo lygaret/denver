@@ -2,6 +2,11 @@
 
 scheme like
 
+** inspiration
+
+- [[https://www.cambridge.org/core_title/gb/111322][Lisp in Small Pieces]], Queinnec
+- The Scheme Machine, Robert Burger 1994
+
 ** run
 
 - ~bundle install~
