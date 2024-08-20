@@ -2,10 +2,12 @@
 
 source 'https://rubygems.org'
 
+gem 'linenoise', '~> 1.1'
+
 gem 'debug'
+
 gem 'rspec'
+gem 'rspec-its'
 
 gem 'rubocop'
 gem 'rubocop-rspec'
-
-gem 'linenoise', '~> 1.1'
