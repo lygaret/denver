@@ -30,11 +30,7 @@ module DenverBS
     end
 
     def update(expr, env, value)
-      if env.key?(expr.value)
-        env[expr.value] = value
-      else
-        DenverBS::Data.error("no such binding: #{key}", nil)
-      end
+      env[expr.value] = value
     end
 
     def eprogn(expr, env)

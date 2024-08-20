@@ -10,4 +10,14 @@ scheme like
 #+begin_src scheme
   >> (((lambda (a) (lambda (b) (list a b))) 1) 2)
   #> (1.0 2.0)
+  >>
+  >> ; we don't have a global env yet
+  >> (set! double (lambda (x) (list x x)))
+  #> function|#<Proc:0x00007f621dc76768 /home/jonathan/code/denver/bootstrap/evaluator.rb:60>
+  >>
+  >> (double 3)
+  #> (3.0 3.0)
+  >>
+  >> (double (double 4))
+  #> ((4.0 4.0) (4.0 4.0))
 #+end_src
