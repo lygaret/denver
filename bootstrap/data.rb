@@ -4,21 +4,35 @@ module DenverBS
   module Data
 
     # any kind of value in the s-expression tree
+    # "extra" is cdr for cons; this way we can share this one big #to_s
 
     Atom = ::Data.define(:tag, :value, :extra, :token) do
 
       # cons
-
       def pair? = tag == :cons
-      def car   = value
-      def cdr   = extra
-
       def atom? = !pair?
 
+      def car   = value
+      def cdr   = extra
+      def cdar  = cdr.car
+      def cddr  = cdr.cdr
+
+      def count = pair? ? (1 + cdr.count) : 0
+
+      # formater
       def to_s(cont: false)
         case tag
-        when :null
-          '()'
+
+          # atoms
+        when :symbol, :number
+          value.to_s
+        when :true, :false
+          "##{value ? 't' : 'f'}"
+        when :string
+          value.inspect
+
+          # cons
+
         when :cons
           case cdr
           in { tag: :null }
@@ -28,12 +42,11 @@ module DenverBS
           else
             "#{cont ? '' : '('}#{car} . #{cdr})"
           end
-        when :symbol, :number
-          value.to_s
-        when :true, :false
-          "##{value ? 't' : 'f'}"
-        when :string
-          value.inspect
+
+        when :null
+          '()'
+
+          # fallback
         else
           "#{tag}|#{value.inspect}"
         end
