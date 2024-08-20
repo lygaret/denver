@@ -5,10 +5,7 @@ module DenverBS
     class EnvHash < Hash
       def spawn(vars, vals)
         parent = self
-        child  = EnvHash.new do |_, k|
-          puts "looking up #{k} in parent... #{parent.object_id}"
-          parent[k]
-        end
+        child  = EnvHash.new { |_, k| parent[k] }
 
         while (var = vars.car) && (val = vals.car)
           child[var.value] = val
